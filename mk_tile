@@ -1,0 +1,24 @@
+WORK_DIR=.
+SHRINK_FACTOR=10
+
+hdrs=$(wildcard t/tile_*.hdr)
+tbls=$(patsubst %.hdr, %.tbl, $(hdrs))
+tfits=$(patsubst %.hdr, %.fits, $(hdrs))
+sfits=$(patsubst t/tile_%.hdr, s/shrunk_%.fits, $(hdrs))
+
+all: simages.tbl
+
+$(tbls): %.tbl: %.hdr cimages.tbl
+	( cd $(WORK_DIR); mCoverageCheck cimages.tbl $@ -header $< )
+
+$(tfits): %.fits: %.tbl %.hdr
+	( cd $(WORK_DIR); mAdd -e -p c $< $(subst .tbl,.hdr,$<) $@ )
+
+s:
+	-mkdir -p s
+
+$(sfits): s/shrunk_%.fits: t/tile_%.fits s
+	( cd $(WORK_DIR); mShrink $< $@ $(SHRINK_FACTOR) )
+
+simages.tbl: $(sfits) s
+	mImgtbl s simages.tbl

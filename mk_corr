@@ -1,0 +1,13 @@
+WORK_DIR=.
+target=$(patsubst p/%.p.fits, c/%.c.fits, $(wildcard p/*.p.fits))
+
+all: cimages.tbl
+
+c:
+	-mkdir -p c
+
+$(target): c/%.c.fits : p/%.p.fits pimages.tbl corrections.tbl
+	(cd $(WORK_DIR)/p; mBackground -t $(subst p/,,$<) ../$@ ../pimages.tbl ../corrections.tbl)
+
+cimages.tbl: $(target)
+	mImgtbl c cimages.tbl

@@ -1,0 +1,14 @@
+WORK_DIR=.
+
+list=$(patsubst $(INPUT_DIR)/%.fits, p/%.p.fits, $(wildcard $(INPUT_DIR)/2mass-atlas-*.fits))
+
+all: pimages.tbl
+
+p:
+	-mkdir -p p
+
+$(list): p/%.p.fits : $(INPUT_DIR)/%.fits $(INPUT_DIR)/region.hdr p
+	( cd $(WORK_DIR); mProjectPP $< $@ $(INPUT_DIR)/region.hdr || echo err )
+
+pimages.tbl: $(list)
+	mImgtbl p pimages.tbl

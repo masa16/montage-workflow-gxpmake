@@ -1,0 +1,59 @@
+Montage workflow for GXP make       Masahiro TANAKA 2011-08-26
+
+= Files
+
+  Makefile         : main makefile
+  mk_proj          : sub-makefile
+  mk_diff.awk      : AWK script
+  mk_corr          : sub-makefile
+  mk_tile          : sub-makefile
+  tile_region.sh   : shell script
+
+= Required input data
+
+  ${INPUT_DIR}/2mass-atlas-*.fits  : FITS files
+  ${INPUT_DIR}/region.hdr          : Region header
+  ${INPUT_DIR}/shrunk.hdr          : Shrink header
+
+
+= Simple example
+
+  make INPUT_DIR=data0 mosaic.jpg
+
+
+= Example : GXP make with Gfarm
+
+  # make Gfarm mount point
+  gxpc use ssh tsukuba tsukuba
+  gxpc explore tsukuba[[000-003]] 1
+  gxpc e mkdir /tmp/$USER
+  gxpc e gfarm2fs /tmp/$USER
+
+  # Working directory
+  gf_work_dir="home/tanakams/2011/0826"
+  cd /tmp/$USER/$gf_work_dir
+
+  # Setup cluster nodes (depends on your environment)
+  gxpc use ssh tsukuba tsukuba
+  gxpc explore tsukuba[[000-003]] 7
+
+  # mount Gfarm for each core
+  gxpc e 'mkdir -p /tmp/${GXP_GUPID}'
+  gxpc e 'gfarm2fs /tmp/${GXP_GUPID}'
+
+  # run workflow
+  work_dir='/tmp/$$GXP_GUPID'/$gf_work_dir
+  gxpc make shrunk.jpg INPUT_DIR=data2 WORK_DIR="$work_dir" -j 32 -- --state_dir=xxx
+
+  # umount Gfarm for each core
+  gxpc e 'fusermount -u /tmp/${GXP_GUPID}'
+  gxpc e 'rmdir /tmp/${GXP_GUPID}'
+  gxpc quit
+
+  # remove Gfarm mount point
+  cd
+  gxpc use ssh tsukuba tsukuba
+  gxpc explore tsukuba[[000-003]] 1
+  gxpc e fusermount -u /tmp/$USER
+  gxpc e rmdir /tmp/$USER
+  gxpc quit
