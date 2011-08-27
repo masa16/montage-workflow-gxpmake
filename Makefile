@@ -60,7 +60,7 @@ clean:
 	rm -rf d
 	rm -rf p
 	rm -f  simages.tbl cimages.tbl pimages.tbl diffs.tbl
-	rm -f mk_diff $(MKDIFF)
+	rm -f mk_diff
 	rm -f corrections.tbl fits.tbl fittxt.tbl
 
 cleanall: clean
